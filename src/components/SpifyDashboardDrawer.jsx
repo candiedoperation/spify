@@ -4,11 +4,9 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import WidthWideIcon from '@mui/icons-material/WidthWide';
-import ViewAgendaIcon from '@mui/icons-material/ViewAgenda';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import HomeIcon from '@mui/icons-material/Home';
-import BusinessIcon from '@mui/icons-material/Business';
-import LocationCityIcon from '@mui/icons-material/LocationCity';
+import PlaceIcon from '@mui/icons-material/Place';
 import { useNavigate } from 'react-router-dom';
 
 const SpifyDashboardDrawer = (props) => {
@@ -20,6 +18,14 @@ const SpifyDashboardDrawer = (props) => {
             linkName: 'Home',
             path: './home',
             icon: <HomeIcon />
+        }, {
+            linkName: 'Monitoring',
+            path: './monitoring',
+            icon: <VisibilityIcon />
+        }, {
+            linkName: 'Locations',
+            path: './locations',
+            icon: <PlaceIcon />
         }])
     }, []);
 

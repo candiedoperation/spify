@@ -33,15 +33,16 @@ import {
   getCurrentThemeComponent,
   toggleTheme,
 } from "./../middleware/SpifyAppThemeController";
+import SpifyDashboardMonitoring from "../components/SpifyDashboardMonitoring";
+import SpifyDashboardLocations from "../components/SpifyDashboardLocations";
 import SpifyDashboardDrawer from "../components/SpifyDashboardDrawer";
-import SpifyLogo from "./../components/SpifyLogo";
 import SpifyDashboardHome from "../components/SpifyDashboardHome";
-import axios from "axios";
 import { serverURL } from "./../middleware/SpifyServerParamConn";
+import SpifyLogo from "./../components/SpifyLogo";
+import axios from "axios";
 import "@fontsource/roboto/500.css";
 
 const drawerWidth = 240;
-
 function SpifyDashboard(props) {
   const { window } = props;
   const linkProps = useParams();
@@ -54,6 +55,10 @@ function SpifyDashboard(props) {
     switch (linkProps["*"].split("/")[0]) {
       case "home":
         return setCurrentPage("Home");
+      case "monitoring":
+        return setCurrentPage("Monitoring");
+      case "locations":
+        return setCurrentPage("Locations");
       default:
         return setCurrentPage("Dashboard");
     }
@@ -220,7 +225,7 @@ function SpifyDashboard(props) {
               component="div"
               sx={{ lineHeight: "initial" }}
             >
-              Spify Monitoring
+              Spify
             </Typography>
             <Typography
               variant="caption"
@@ -283,6 +288,14 @@ function SpifyDashboard(props) {
             <Route
               path="/home/*"
               element={<SpifyDashboardHome userData={props.userData} />}
+            />
+            <Route
+              path="/monitoring/*"
+              element={<SpifyDashboardMonitoring userData={props.userData} />}
+            />
+            <Route
+              path="/locations/*"
+              element={<SpifyDashboardLocations userData={props.userData} />}
             />
           </Routes>
         </Box>
