@@ -86,7 +86,7 @@ const App = () => {
       <CssBaseline />
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} exact></Route>
-        <Route path="/login" element={<SpifyLogin/>} exact></Route>
+        <Route path="/login" element={<SpifyLogin toggleTheme={toggleThemeWrapper} />} exact></Route>
         <Route path="/dashboard/*" element={<CheckAuth setAuthenticated={setAuthenticated} setUserData={setUserData}><SpifyDashboard toggleTheme={toggleThemeWrapper} userData={userData} /></CheckAuth>}></Route>
       </Routes>
     </ThemeProvider>

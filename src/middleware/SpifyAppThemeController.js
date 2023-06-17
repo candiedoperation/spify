@@ -38,26 +38,45 @@ const setCurrentTheme = (theme) => {
 }
 
 const getCurrentThemeComponent = () => {
-    let palette = {
+    let paletteLight = {
+        mode: 'light',
         primary: {
             main: "#7E57C2"
         },
         secondary: {
-            main: "#FFC627",
+            main: "#E8BA12",
+        },
+        display: {
+            main: "#FFFFFF",
+            warning: "#E8BA12",
+            contrastText: "#000000"
         }
+    };
+
+    let paletteDark = {
+        mode: 'dark',
+        primary: {
+            main: "#FFC627"
+        },
+        secondary: {
+            main: "#BA68C8",
+        },
+        display: {
+            main: "#FFFFFF",
+            warning: "#FFC627",
+            contrastText: "#000000"
+        },
     };
 
     switch (getCurrentTheme()) {
         case "light":
-            palette.mode = 'light';
             return createTheme({
-                palette
+                palette: paletteLight
             })
 
         case "dark":
-            palette.mode = 'dark';
             return createTheme({
-                palette
+                palette: paletteDark
             });
     }
 }

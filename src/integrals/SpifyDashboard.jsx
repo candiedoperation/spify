@@ -261,7 +261,7 @@ function SpifyDashboard(props) {
               },
             }}
           >
-            <SpifyDashboardDrawer currentPage={currentPage} />
+            <SpifyDashboardDrawer onClose={() => { setMobileOpen(false) }} currentPage={currentPage} />
           </Drawer>
           <Drawer
             variant="permanent"
@@ -280,9 +280,8 @@ function SpifyDashboard(props) {
 
         <Box
           component="main"
-          sx={{ width: "100%", maxHeight: "100%", overflow: "auto", p: 3 }}
+          sx={{ width: "100%", maxHeight: "100%", marginTop: '64px', overflow: "hidden", display: 'flex', flexDirection: 'column' }}
         >
-          <Toolbar />
           <Routes>
             <Route path="/" element={<Navigate to="./home" />} />
             <Route

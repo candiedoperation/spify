@@ -244,7 +244,7 @@ const SpifyDashboardLocations = (props) => {
     return (
         <>
             <LocationInfoDialog refresh={refresh} location={locationInfoData} open={locationInfoOpen} onClose={() => { setLocationInfoOpen(false) }} />
-            <Box sx={{ width: '100%', height: '100%' }}>
+            <Box sx={{ width: '100%', height: '100%', padding: '24px 24px 0px 24px' }}>
                 <List sx={{ height: '100%' }}>
                     <Box sx={{ display: locations.length > 0 ? "none" : "block" }}>
                         <Typography variant="h3">No Locations Found</Typography>

@@ -1,12 +1,15 @@
 import * as React from 'react';
 import LoadingButton from '@mui/lab/LoadingButton';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Box, Divider, Grid, LinearProgress, Link, Paper, TextField, Typography } from "@mui/material";
+import { Box, Button, Divider, Grid, LinearProgress, Link, Paper, TextField, Typography } from "@mui/material";
 import LoginIcon from '@mui/icons-material/Login';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
 import SpifyLogo from "../components/SpifyLogo";
 import '@fontsource/roboto/700.css';
 import axios from 'axios';
 import { serverURL } from '../middleware/SpifyServerParamConn';
+import { getCurrentTheme } from '../middleware/SpifyAppThemeController';
 
 const SpifyLogin = (props) => {
     const [isConnecting, setIsConnecting] = React.useState(false);
@@ -99,7 +102,8 @@ const SpifyLogin = (props) => {
                                 display: { xs: 'none', md: 'flex' },
                                 borderRadius: '10px',
                                 marginTop: '-20px', 
-                                userSelect: 'none'
+                                userSelect: 'none',
+                                color: "#000000"
                             }}>Spify Monitoring</Typography>
                         </Box>
                     </Box> 
@@ -112,6 +116,12 @@ const SpifyLogin = (props) => {
                         alignItems: 'center',
                         justifyContent: 'center',
                     }}>
+                        <Box sx={{ padding: '8px', alignSelf: 'end' }}>
+                            <Button onClick={props.toggleTheme} variant='outlined' startIcon={getCurrentTheme() == 'light' ? <DarkModeIcon /> : <LightModeIcon />}>
+                                {getCurrentTheme() == 'light' ? "Dark Mode" : "Light Mode"}
+                            </Button>
+                        </Box>
+                        <Divider sx={{ width: '100%' }} />
                         <Box sx={{
                             width: '80%',
                             display: 'flex',
