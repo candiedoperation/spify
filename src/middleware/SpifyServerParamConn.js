@@ -16,6 +16,10 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-let serverURL = "https://10.0.0.110:3001";
+let serverProtocol = "https";
+let serverIP = "10.0.0.110";
+let serverPort = "3001";
+let serverAddress = `${serverIP}:${serverPort}`;
+let serverURL = `${serverProtocol}://${serverAddress}`;
 
-module.exports = { serverURL };
+module.exports = { serverURL, serverIP, serverPort, serverAddress, serverProtocol };

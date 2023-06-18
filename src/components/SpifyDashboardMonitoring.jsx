@@ -109,6 +109,7 @@ const ComputerThumbnailController = (props) => {
                 daemonIp={computer}
                 online={true}
                 hostname={computerName}
+                logontime={session.logontime}
                 rfbTcpIp={session.ip}
                 rfbWsIp={session.ws}
                 rfbWsSecure={session.ws_secure}
