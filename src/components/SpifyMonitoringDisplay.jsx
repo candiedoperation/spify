@@ -26,7 +26,7 @@ import NoVncClient from '@novnc/novnc/core/rfb';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { serverAddress, serverProtocol, serverURL } from '../middleware/SpifyServerParamConn';
 import { format } from "date-fns";
-import { Computer, History, Lan, Lock, Logout, Person3, PowerOff, RestartAlt, Security } from "@mui/icons-material";
+import { Close, Computer, History, InfoOutlined, Lan, Lock, Logout, Person3, PowerOff, RestartAlt, Security, Warning, WarningAmber } from "@mui/icons-material";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -88,7 +88,10 @@ const SpifyMonitoringDisplay = (props) => {
                 secondary: "Current User",
                 icon: <Person3 />
             }, {
-                primary: format(new Date(props.data.logontime * 1000), "MMMM do @ h:mm a OOOO"),
+                primary: format(new Date(props.data.logontime * 1000), "MMMM do, h:mm a ")
+                    + new Date(props.data.logontime * 1000)
+                    .toLocaleTimeString(undefined, { timeZoneName: 'short' })
+                    .split(' ')[2],
                 secondary: "Most Recent Logon",
                 icon: <History />
             }, {
@@ -148,6 +151,10 @@ const SpifyMonitoringDisplay = (props) => {
                             setIsLoading(false);
                         }, 1500);
                     });
+
+                    window.rfb.addEventListener("disconnect", (e) => {
+                        setIsErrored(true);
+                    })
                 } catch (err) {
                     console.log(err);
                     setIsErrored(true);
@@ -181,7 +188,8 @@ const SpifyMonitoringDisplay = (props) => {
 
         return (
             <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
-                <Button onClick={handleClose} startIcon={<PhonelinkOffIcon />} disabled={(isLoading || isErrored)} variant="outlined" color="error" sx={{ margin: '10px' }}>Disconnect</Button>
+                <Button onClick={handleDrawerToggle} variant="outlined" sx={{ margin: '10px', display: { xs: 'flex', md: 'none' } }} startIcon={<Close />}>Close Drawer</Button>
+                <Button onClick={handleClose} startIcon={<PhonelinkOffIcon />} disabled={(isLoading)} variant="outlined" color="error" sx={{ margin: '10px', display: { xs: 'none', md: 'flex' } }}>Disconnect</Button>
                 <Divider />
                 <Box sx={{ flexGrow: 1, maxHeight: '100%', display: 'flex', flexDirection: 'column', padding: '10px' }}>
                     <Accordion expanded={(drawerAccordionOpen == 1)} onChange={() => { accordionChanged(1) }}>
@@ -260,33 +268,11 @@ const SpifyMonitoringDisplay = (props) => {
                 >
                     <Toolbar sx={{
                         zIndex: (theme) => theme.zIndex.drawer + 1,
-                        display: { xs: "flex", md: "none" }
+                        display: { xs: "flex", md: "none" },
+                        justifyContent: 'end'
                     }}>
-                        <IconButton><PhonelinkOffIcon /></IconButton>
-                        <Button
-                            color="display"
-                            variant="outlined"
-                            onClick={handleClose}
-                            startIcon={<PhonelinkOffIcon />}
-                        >
-                        Disconnect
-                        </Button>
-                        <Box sx={{ flexGrow: 1, marginLeft: '15px' }}>
-                        <Typography
-                            variant="h6"
-                            component="div"
-                            sx={{ lineHeight: "initial", marginTop: '-6px' }}
-                        >
-                            {props.data.username}
-                        </Typography>
-                        <Typography
-                            variant="caption"
-                            component="div"
-                            sx={{ lineHeight: "initial" }}
-                        >
-                            {`${props.data.hostname} ➜ ${props.data.daemonIp}`}
-                        </Typography>
-                        </Box>
+                        <IconButton onClick={handleClose} sx={{ color: '#ffffff' }}><PhonelinkOffIcon /></IconButton>
+                        <IconButton onClick={handleDrawerToggle} sx={{ color: '#ffffff' }}><InfoOutlined /></IconButton>
                     </Toolbar>
                     <Box
                         component="nav"
@@ -302,6 +288,7 @@ const SpifyMonitoringDisplay = (props) => {
                                 keepMounted: true, // Better open performance on mobile.
                             }}
                             sx={{
+                                zIndex: (theme) => theme.zIndex.modal + 1,
                                 display: { xs: "block", md: "none" },
                                 "& .MuiDrawer-paper": {
                                     boxSizing: "border-box",
@@ -309,7 +296,7 @@ const SpifyMonitoringDisplay = (props) => {
                                 },
                             }}
                         >
-                            <SpifyMonitoringDrawer />
+                            <SpifyMonitoringDrawer onClose={handleDrawerToggle} />
                         </Drawer>
                         <Drawer
                             variant="permanent"
@@ -337,9 +324,14 @@ const SpifyMonitoringDisplay = (props) => {
                         justifyContent: 'center'
                     }}>
                         {
-                            <Box sx={{ display: 'flex', flexDirection: 'column', width: '70%', justifyContent: 'center' }}>
+                            (isLoading == true) ?
+                            <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%', alignItems: 'center', justifyContent: 'center' }}>
                                 <Typography sx={{ alignSelf: 'center', marginBottom: '5px' }} variant="h6">📡 Buzzzzz! Decoding Pixels...</Typography>
-                                <LinearProgress color="secondary" />
+                                <LinearProgress sx={{ width: '70%' }} color="secondary" />
+                            </Box> :
+                            <Box sx={{ display: 'flex', flexDirection: 'column', width: '85%', alignItems: 'center', justifyContent: 'center' }}>
+                                <WarningAmber sx={{ color: 'display.warning', fontSize: '4rem' }} />
+                                <Typography sx={{ color: 'display.warning', textAlign: 'center' }} variant="h4">Display Connection Failed</Typography>
                             </Box>
                         }
                     </Box>

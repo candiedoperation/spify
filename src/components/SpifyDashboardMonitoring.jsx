@@ -13,9 +13,11 @@ const ComputerThumbnail = (props) => {
     const [thumbnailImage, setThumbnailImage] = React.useState("");
 
     const handleComputerSelect = () => {
-        let props_copy = Object.assign({}, props);
-        delete props_copy["launchDisplay"];
-        props.launchDisplay(props_copy);
+        if (props.online == true) {
+            let props_copy = Object.assign({}, props);
+            delete props_copy["launchDisplay"];
+            props.launchDisplay(props_copy);
+        }
     }
 
     const Badge = (internal_props) => {
