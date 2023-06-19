@@ -27,6 +27,7 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { serverAddress, serverProtocol, serverURL } from '../middleware/SpifyServerParamConn';
 import { format } from "date-fns";
 import { Close, Computer, History, InfoOutlined, Lan, Lock, Logout, Person3, PowerOff, RestartAlt, Security, Warning, WarningAmber } from "@mui/icons-material";
+import axios from "axios";
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -45,6 +46,9 @@ const SpifyMonitoringDisplay = (props) => {
     const [powerSettings, setPowerSettings] = React.useState([]);
     const [remoteSettings, setRemoteSettings] = React.useState([]);
     const [drawerAccordionOpen, setDrawerAccordionOpen] = React.useState(1);
+
+    let tcpEndpointUrl;
+    let wsEndpointUrl;
 
     const container =
     windowProps !== undefined ? () => windowProps().document.body : undefined;
@@ -68,19 +72,44 @@ const SpifyMonitoringDisplay = (props) => {
             setPowerSettings((ps) => ([{
                 primary: 'Power Off',
                 secondary: 'Turns off the Computer',
-                icon: <PowerOff />
+                icon: <PowerOff />,
+                onClick: () => {
+                    setMobileOpen(false);
+                    if (wsEndpointUrl)
+                        props.powerOff(wsEndpointUrl, "Shutdown")
+                }
             }, {
                 primary: 'Reboot',
                 secondary: 'Restarts the Computer',
-                icon: <RestartAlt />
+                icon: <RestartAlt />,
+                onClick: () => {
+                    setMobileOpen(false);
+                    if (wsEndpointUrl)
+                        props.powerOff(wsEndpointUrl, "Restart")
+                }
             }, {
                 primary: 'Lock',
                 secondary: 'Locks the Current Session',
-                icon: <Lock />
+                icon: <Lock />,
+                onClick: () => {
+                    setMobileOpen(false);
+                    if (wsEndpointUrl) {
+                        axios.post(
+                            `${serverURL}/api/daemondriver/power/lock`,
+                            { endpoint: wsEndpointUrl },
+                            { withCredentials: true }
+                        );
+                    }
+                }
             }, {
                 primary: 'Sign Out',
                 secondary: 'Logs off the Current Session',
-                icon: <Logout />
+                icon: <Logout />,
+                onClick: () => {
+                    setMobileOpen(false);
+                    if (wsEndpointUrl)
+                        props.powerOff(wsEndpointUrl, "Sign Out")
+                }
             }]));
 
             setSessionOptions((ps) => ([{
@@ -124,17 +153,23 @@ const SpifyMonitoringDisplay = (props) => {
                         `ws${(props.data.rfbWsSecure == false ? "" : "s")}://${daemon_ip}:${endpointUrl[1]}`
                     */
 
-                    let endpointUrl = props.data.rfbTcpIp.split(":");
-                    if (endpointUrl[0] == "0.0.0.0") {
+                    tcpEndpointUrl = props.data.rfbTcpIp.split(":");
+                    if (tcpEndpointUrl[0] == "0.0.0.0") {
                         let daemon_ip = props.data.daemonIp.split(":")[0]
-                        endpointUrl = `${daemon_ip}:${endpointUrl[1]}`;
+                        tcpEndpointUrl = `${daemon_ip}:${tcpEndpointUrl[1]}`
+                    }
+
+                    wsEndpointUrl = props.data.rfbWsIp.split(":");
+                    if (wsEndpointUrl[0] == "0.0.0.0") {
+                        let daemon_ip = props.data.daemonIp.split(":")[0]
+                        wsEndpointUrl = `${daemon_ip}:${wsEndpointUrl[1]}`;
                     }
     
                     /* Create RFB Instance */
                     let ws_proxy = `ws${(serverProtocol == "https") ? "s" : ""}://${serverAddress}`
                     let websocket = new WebSocket(ws_proxy);
                     websocket.addEventListener("open", (e) => {
-                        websocket.send(`SPIFY\r\nENDPOINT\r\n${endpointUrl}`);
+                        websocket.send(`SPIFY\r\nENDPOINT\r\n${tcpEndpointUrl}`);
                     });
 
                     window.rfb = new NoVncClient(displayCanvas.current, websocket);

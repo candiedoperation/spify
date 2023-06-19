@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Box, Button, Card, CardActions, CardContent, CardHeader, CardMedia, Divider, FormControl, Grid, IconButton, InputLabel, MenuItem, Pagination, Paper, Select, Skeleton, Typography } from "@mui/material";
+import { Box, Button, Card, CardActions, CardContent, CardHeader, CardMedia, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid, IconButton, InputLabel, MenuItem, Pagination, Paper, Select, Skeleton, Typography } from "@mui/material";
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import LockIcon from '@mui/icons-material/Lock';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -12,6 +12,7 @@ const ComputerThumbnail = (props) => {
     let thumbnailInterval;
     const [thumbnailAvailable, setThumbnailAvailable] = React.useState(false);
     const [thumbnailImage, setThumbnailImage] = React.useState("");
+    const [websockEndpointURL, setWebsockEndpointURL] = React.useState("");
 
     async function pngEncode(array) {
         return new Promise((res) => {
@@ -29,17 +30,18 @@ const ComputerThumbnail = (props) => {
 
     React.useEffect(() => {
         if (props.online == true) {
-            let endpointUrl = props.rfbWsIp.split(":");
-            if (endpointUrl[0] == "0.0.0.0") {
+            let wsEndpointUrl = props.rfbWsIp.split(":");
+            if (wsEndpointUrl[0] == "0.0.0.0") {
                 let daemon_ip = props.daemonIp.split(":")[0]
-                endpointUrl = `${daemon_ip}:${endpointUrl[1]}`;
+                wsEndpointUrl = `${daemon_ip}:${wsEndpointUrl[1]}`;
             }
 
+            setWebsockEndpointURL(wsEndpointUrl);
             const getDisplayPreview = () => {
-                if (endpointUrl != "") {
+                if (wsEndpointUrl != "") {
                     axios
                         .post(`${serverURL}/api/daemondriver/screenshot`,
-                            { endpoint: endpointUrl },
+                            { endpoint: wsEndpointUrl },
                             { withCredentials: true, responseType: 'arraybuffer' }
                         )
                         .then(async (res) => {
@@ -72,6 +74,26 @@ const ComputerThumbnail = (props) => {
             delete props_copy["launchDisplay"];
             props.launchDisplay(props_copy);
         }
+    }
+
+    const handleOff = (e) => {
+        e.stopPropagation();
+        props.powerOff(websockEndpointURL, "Shutdown");
+    }
+
+    const handleLock = (e) => {
+        e.stopPropagation();
+        if (websockEndpointURL) {
+            axios.post(
+                `${serverURL}/api/daemondriver/power/lock`,
+                { endpoint: websockEndpointURL },
+                { withCredentials: true }
+            );
+        }
+    }
+
+    const handleSettings = (e) => {
+        e.stopPropagation();
     }
 
     const Badge = (internal_props) => {
@@ -119,8 +141,8 @@ const ComputerThumbnail = (props) => {
                     </CardContent>
                     <Divider />
                     <CardActions sx={{ display: 'flex', justifyContent: 'center' }}>
-                        <Button color="error"><PowerSettingsNewIcon /></Button>
-                        <Button><LockIcon /></Button>
+                        <Button onClick={handleOff} color="error"><PowerSettingsNewIcon /></Button>
+                        <Button onClick={handleLock}><LockIcon /></Button>
                         <Button><SettingsIcon /></Button>
                     </CardActions>
             </Card>
@@ -176,6 +198,7 @@ const ComputerThumbnailController = (props) => {
                 rfbWsSecure={session.ws_secure}
                 username={session.username}
                 launchDisplay={props.launchDisplay}
+                powerOff={props.powerOff}
             />
         ))
     )
@@ -216,6 +239,9 @@ const SpifyDashboardMonitoring = (props) => {
     const [errored, setErrored] = React.useState(false);
     const [isConnecting, setIsConnecting] = React.useState(false);
     const [thumbnailsPage, setThumbnailsPage] = React.useState(0);
+    const [powerOffConfirmOpen, setPowerOffConfirmOpen] = React.useState(false);
+    const [powerOffConfirmType, setPowerOffConfirmType] = React.useState("");
+    const [powerOffConfirmEndpoint, setPowerOffConfirmEndpoint] = React.useState("");
     const [computerThumbnails, setComputerThumbnails] = React.useState([]);
     const [displayOpen, setDisplayOpen] = React.useState(false);
     const [displayData, setDisplayData] = React.useState({});
@@ -267,6 +293,39 @@ const SpifyDashboardMonitoring = (props) => {
 
     }
 
+    const handlePowerOffRequest = (endpoint, type) => {
+        setPowerOffConfirmEndpoint(endpoint);
+        setPowerOffConfirmOpen(true);
+        setPowerOffConfirmType(type);
+    }
+
+    const handlePowerOffConfirm = () => {
+        if (powerOffConfirmType == "Sign Out") {
+            axios.post(
+                `${serverURL}/api/daemondriver/power/logoff`,
+                { endpoint: powerOffConfirmEndpoint },
+                { withCredentials: true }
+            );
+        } else if (powerOffConfirmType == "Shutdown") {
+            axios.post(
+                `${serverURL}/api/daemondriver/power/poweroff`,
+                { endpoint: powerOffConfirmEndpoint },
+                { withCredentials: true }
+            );
+        } else if (powerOffConfirmType == "Restart") {
+            axios.post(
+                `${serverURL}/api/daemondriver/power/reboot`,
+                { endpoint: powerOffConfirmEndpoint },
+                { withCredentials: true }
+            );
+        }
+
+        /* Close Dialog */
+        setPowerOffConfirmEndpoint("");
+        setPowerOffConfirmOpen(false);
+        setPowerOffConfirmType("");
+    }
+
     const launchDisplay = (computerInfo) => {
         setDisplayData((disp_data) => computerInfo);
         setDisplayOpen(true);
@@ -289,13 +348,25 @@ const SpifyDashboardMonitoring = (props) => {
     React.useEffect(() => {
         /* Set Computer Thumbnails */
         setComputerThumbnails((ct) => (
-            computers.map((computer) => (<ComputerThumbnailController launchDisplay={launchDisplay} computer={computer} />))
+            computers.map((computer) => (<ComputerThumbnailController powerOff={handlePowerOffRequest} launchDisplay={launchDisplay} computer={computer} />))
         ));
     }, [computers])
 
     return(
         <>
-            <SpifyMonitoringDisplay data={displayData} open={displayOpen} onClose={destroyDisplay} />
+            <SpifyMonitoringDisplay powerOff={handlePowerOffRequest} data={displayData} open={displayOpen} onClose={destroyDisplay} />
+            <Dialog open={powerOffConfirmOpen}>
+                <DialogTitle>{`Continue ${powerOffConfirmType}?`}</DialogTitle>
+                <DialogContent>
+                    This could cause data-loss if users are still using the 
+                    computer. Documents and Applications currently opened
+                    by people using this computer would be closed.
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => { setPowerOffConfirmOpen(false) }}>Cancel</Button>
+                    <Button color='error' onClick={handlePowerOffConfirm}>{powerOffConfirmType}</Button>
+                </DialogActions>
+            </Dialog>
             <Box sx={{ width: '100%', height: "100%", display: 'flex', flexDirection: 'column' }}>
                 <Box sx={{ flexGrow: 1, height: "0%", display: 'flex', flexDirection: 'column', padding: '24px 24px 0px 24px' }}>
                     {
