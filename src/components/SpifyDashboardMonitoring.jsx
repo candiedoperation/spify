@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Box, Button, Card, CardActions, CardContent, CardHeader, Divider, FormControl, Grid, IconButton, InputLabel, MenuItem, Pagination, Paper, Select, Skeleton, Typography } from "@mui/material";
+import { Box, Button, Card, CardActions, CardContent, CardHeader, CardMedia, Divider, FormControl, Grid, IconButton, InputLabel, MenuItem, Pagination, Paper, Select, Skeleton, Typography } from "@mui/material";
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import LockIcon from '@mui/icons-material/Lock';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -9,8 +9,62 @@ import { serverURL } from '../middleware/SpifyServerParamConn';
 import axios from 'axios';
 
 const ComputerThumbnail = (props) => {
+    let thumbnailInterval;
     const [thumbnailAvailable, setThumbnailAvailable] = React.useState(false);
     const [thumbnailImage, setThumbnailImage] = React.useState("");
+
+    async function pngEncode(array) {
+        return new Promise((res) => {
+          const blob = new Blob([array]);
+          const reader = new FileReader();
+          
+          reader.onload = (event) => {
+            const dataUrl = event.target.result;
+            res(dataUrl);
+          };
+          
+          reader.readAsDataURL(blob);
+        });
+    }
+
+    React.useEffect(() => {
+        if (props.online == true) {
+            let endpointUrl = props.rfbWsIp.split(":");
+            if (endpointUrl[0] == "0.0.0.0") {
+                let daemon_ip = props.daemonIp.split(":")[0]
+                endpointUrl = `${daemon_ip}:${endpointUrl[1]}`;
+            }
+
+            const getDisplayPreview = () => {
+                if (endpointUrl != "") {
+                    axios
+                        .post(`${serverURL}/api/daemondriver/screenshot`,
+                            { endpoint: endpointUrl },
+                            { withCredentials: true, responseType: 'arraybuffer' }
+                        )
+                        .then(async (res) => {
+                            /* Update Locations */
+                            setThumbnailImage(await pngEncode(res.data));
+                            setThumbnailAvailable(true);
+                        })
+                        .catch((res) => {
+                            clearInterval(thumbnailInterval);
+                            setThumbnailAvailable(false)
+                        })  
+                }              
+            }
+
+            getDisplayPreview();
+            thumbnailInterval = setInterval(() => {
+                getDisplayPreview();
+            }, [15000]);
+        } else {
+            /* Destroy Timer if Exists */
+            clearInterval(thumbnailInterval);
+            setThumbnailAvailable(false);
+            setThumbnailImage("");
+        }
+    }, [props.online]);
 
     const handleComputerSelect = () => {
         if (props.online == true) {
@@ -24,7 +78,6 @@ const ComputerThumbnail = (props) => {
         return (
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Box sx={{
-                    marginTop: '4px',
                     width: '13px',
                     height: '13px',
                     borderRadius: '50%',
@@ -44,14 +97,20 @@ const ComputerThumbnail = (props) => {
                 width: "100%", 
             }}>
                 <CardHeader 
-                    title={<Badge text={(props.online == false) ? "Offline" : props.username} />} 
+                    title={<Badge text={(props.online == false) ? "Offline" : (props.username.charAt(0).toUpperCase() + props.username.substr(1))} />} 
                     subheaderTypographyProps={{ noWrap: true,  sx: { maxWidth: '85%' } }}
                     subheader={(props.online == false) ? props.daemonIp : `${props.hostname} ➜ ${props.daemonIp}`} 
                 />
                     <CardContent sx={{ minHeight: '200px', padding: '0px', background: '#252525', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                         {
                             (thumbnailAvailable == true) ?
-                            <img src='' /> :
+                            <CardMedia
+                                component="img"
+                                height="200px"
+                                sx={{ objectPosition: "top right" }}
+                                image={thumbnailImage}
+                                onError={() => { setThumbnailAvailable(false) }}
+                            /> :
                             <>
                                 <WarningAmberIcon sx={{ color: 'display.warning', fontSize: '2.5rem' }} />
                                 <Typography sx={{ color: 'display.warning' }} variant="h6">Display Unavailable</Typography>
@@ -123,7 +182,7 @@ const ComputerThumbnailController = (props) => {
 }
 
 const ComputerThumbnailSkeleton = (props) => {
-    let skeleton_cards = [1, 2, 3, 4, 5, 6];
+    let skeleton_cards = [1, 2, 3];
     return (
         skeleton_cards.map(() => (
             <Grid item xs={12} md={6} lg={4}>
