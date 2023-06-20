@@ -76,7 +76,7 @@ const SpifyMonitoringDisplay = (props) => {
                 onClick: () => {
                     setMobileOpen(false);
                     if (wsEndpointUrl)
-                        props.powerOff(wsEndpointUrl, "Shutdown")
+                        props.powerOff(wsEndpointUrl, "Shutdown", props.rfbWsSecure)
                 }
             }, {
                 primary: 'Reboot',
@@ -85,7 +85,7 @@ const SpifyMonitoringDisplay = (props) => {
                 onClick: () => {
                     setMobileOpen(false);
                     if (wsEndpointUrl)
-                        props.powerOff(wsEndpointUrl, "Restart")
+                        props.powerOff(wsEndpointUrl, "Restart", props.rfbWsSecure)
                 }
             }, {
                 primary: 'Lock',
@@ -96,7 +96,7 @@ const SpifyMonitoringDisplay = (props) => {
                     if (wsEndpointUrl) {
                         axios.post(
                             `${serverURL}/api/daemondriver/power/lock`,
-                            { endpoint: wsEndpointUrl },
+                            { endpoint: wsEndpointUrl, secure: props.rfbWsSecure },
                             { withCredentials: true }
                         );
                     }
@@ -108,7 +108,7 @@ const SpifyMonitoringDisplay = (props) => {
                 onClick: () => {
                     setMobileOpen(false);
                     if (wsEndpointUrl)
-                        props.powerOff(wsEndpointUrl, "Sign Out")
+                        props.powerOff(wsEndpointUrl, "Sign Out", props.rfbWsSecure)
                 }
             }]));
 

@@ -41,7 +41,7 @@ const ComputerThumbnail = (props) => {
                 if (wsEndpointUrl != "") {
                     axios
                         .post(`${serverURL}/api/daemondriver/screenshot`,
-                            { endpoint: wsEndpointUrl },
+                            { endpoint: wsEndpointUrl, secure: props.rfbWsSecure },
                             { withCredentials: true, responseType: 'arraybuffer' }
                         )
                         .then(async (res) => {
@@ -78,7 +78,7 @@ const ComputerThumbnail = (props) => {
 
     const handleOff = (e) => {
         e.stopPropagation();
-        props.powerOff(websockEndpointURL, "Shutdown");
+        props.powerOff(websockEndpointURL, "Shutdown", props.rfbWsSecure);
     }
 
     const handleLock = (e) => {
@@ -246,6 +246,7 @@ const SpifyDashboardMonitoring = (props) => {
     const [errored, setErrored] = React.useState(false);
     const [isConnecting, setIsConnecting] = React.useState(false);
     const [thumbnailsPage, setThumbnailsPage] = React.useState(0);
+    const [powerOffSecure, setPowerOffSecure] = React.useState(false);
     const [powerOffConfirmOpen, setPowerOffConfirmOpen] = React.useState(false);
     const [powerOffConfirmType, setPowerOffConfirmType] = React.useState("");
     const [powerOffConfirmEndpoint, setPowerOffConfirmEndpoint] = React.useState("");
@@ -343,29 +344,30 @@ const SpifyDashboardMonitoring = (props) => {
 
     }
 
-    const handlePowerOffRequest = (endpoint, type) => {
+    const handlePowerOffRequest = (endpoint, type, secure) => {
         setPowerOffConfirmEndpoint(endpoint);
         setPowerOffConfirmOpen(true);
         setPowerOffConfirmType(type);
+        setPowerOffSecure(secure);
     }
 
     const handlePowerOffConfirm = () => {
         if (powerOffConfirmType == "Sign Out") {
             axios.post(
                 `${serverURL}/api/daemondriver/power/logoff`,
-                { endpoint: powerOffConfirmEndpoint },
+                { endpoint: powerOffConfirmEndpoint, secure: powerOffSecure },
                 { withCredentials: true }
             );
         } else if (powerOffConfirmType == "Shutdown") {
             axios.post(
                 `${serverURL}/api/daemondriver/power/shutdown`,
-                { endpoint: powerOffConfirmEndpoint },
+                { endpoint: powerOffConfirmEndpoint, secure: powerOffSecure },
                 { withCredentials: true }
             );
         } else if (powerOffConfirmType == "Restart") {
             axios.post(
                 `${serverURL}/api/daemondriver/power/reboot`,
-                { endpoint: powerOffConfirmEndpoint },
+                { endpoint: powerOffConfirmEndpoint, secure: powerOffSecure },
                 { withCredentials: true }
             );
         }
@@ -374,6 +376,7 @@ const SpifyDashboardMonitoring = (props) => {
         setPowerOffConfirmEndpoint("");
         setPowerOffConfirmOpen(false);
         setPowerOffConfirmType("");
+        setPowerOffSecure(false);
     }
 
     const launchDisplay = (computerInfo) => {
