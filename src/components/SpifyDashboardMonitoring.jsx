@@ -308,7 +308,7 @@ const SpifyDashboardMonitoring = (props) => {
             );
         } else if (powerOffConfirmType == "Shutdown") {
             axios.post(
-                `${serverURL}/api/daemondriver/power/poweroff`,
+                `${serverURL}/api/daemondriver/power/shutdown`,
                 { endpoint: powerOffConfirmEndpoint },
                 { withCredentials: true }
             );
