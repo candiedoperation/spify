@@ -119,7 +119,7 @@ const ComputerThumbnail = (props) => {
                 width: "100%", 
             }}>
                 <CardHeader 
-                    title={<Badge text={(props.online == false) ? "Offline" : (props.username.charAt(0).toUpperCase() + props.username.substr(1))} />} 
+                    title={<Badge text={(props.online == false) ? ((props.errorCode == 401) ? "Authentication Failure" : "Offline") : (props.username.charAt(0).toUpperCase() + props.username.substr(1))} />} 
                     subheaderTypographyProps={{ noWrap: true,  sx: { maxWidth: '85%' } }}
                     subheader={(props.online == false) ? props.daemonIp : `${props.hostname} ➜ ${props.daemonIp}`} 
                 />
@@ -154,6 +154,7 @@ const ComputerThumbnailController = (props) => {
     const [activeSessions, setActiveSessions] = React.useState([]);
     const [computer, setComputer] = React.useState(props.computer);
     const [computerName, setComputerName] = React.useState("");
+    const [errorCode, setErrorCode] = React.useState(0);
     const [online, setOnline] = React.useState(false);
     
     React.useEffect(() => {
@@ -181,12 +182,15 @@ const ComputerThumbnailController = (props) => {
                         setActiveSessions((activeSessions) => internal_res.data);
                     }
                 })
+            } else {
+                /* Set Error Detail */
+                setErrorCode(computerInfo.errorCode)
             }
         })
     }, []);
 
     return (
-        (online == false) ? <ComputerThumbnail daemonIp={computer} online={online} /> : 
+        (online == false) ? <ComputerThumbnail daemonIp={computer} errorCode={errorCode} online={online} /> : 
         activeSessions.map((session) => (
             <ComputerThumbnail
                 daemonIp={computer}
