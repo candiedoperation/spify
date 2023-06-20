@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Box, Button, Card, CardActions, CardContent, CardHeader, CardMedia, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid, IconButton, InputLabel, MenuItem, Pagination, Paper, Select, Skeleton, Typography } from "@mui/material";
+import { Alert, AlertTitle, Box, Button, Card, CardActions, CardContent, CardHeader, CardMedia, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid, IconButton, InputLabel, MenuItem, Pagination, Paper, Select, Skeleton, TextField, Typography } from "@mui/material";
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import LockIcon from '@mui/icons-material/Lock';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -185,6 +185,9 @@ const ComputerThumbnailController = (props) => {
             } else {
                 /* Set Error Detail */
                 setErrorCode(computerInfo.errorCode)
+                if (computerInfo.errorCode == 401) {
+                    props.showAuthenticationError()
+                }
             }
         })
     }, []);
@@ -249,6 +252,49 @@ const SpifyDashboardMonitoring = (props) => {
     const [computerThumbnails, setComputerThumbnails] = React.useState([]);
     const [displayOpen, setDisplayOpen] = React.useState(false);
     const [displayData, setDisplayData] = React.useState({});
+    const [authenticationErrorVisible, setAuthenticationErrorVisible] = React.useState(false);
+    const [authFailureInstructionsOpen, setAuthFailureInstructionsOpen] = React.useState(false);
+
+    const AuthFailureInstructions = (props) => {
+        const [serverId, setServerId] = React.useState("");
+
+        React.useEffect(() => {
+            axios
+                .get(`${serverURL}/api/daemondriver/serverid`, { withCredentials: true })
+                .then((res) => {
+                    setServerId(res.data.serverid);
+                })
+                .catch((err) => {
+                    setServerId("Server Error")
+                })
+        }, []);
+
+        return (
+            <Dialog fullWidth maxWidth="sm" open={props.open} onClose={props.onClose}>
+                <DialogTitle>Fixing an Authentication Failure</DialogTitle>
+                <DialogContent>
+                    To fix an Authentication Failure, You need to update the Spify Daemon
+                    Configuration file in the Computer you're trying to access. 
+                    <strong>
+                        Open config.json, it's present in the directory Spify's Installed
+                        and add this Server's Private ID to the Paired Servers Array.
+                    </strong>
+                    
+                    <Alert sx={{ marginTop: '10px' }} severity='error'>
+                        <AlertTitle>Server Private ID</AlertTitle>
+                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                            <Typography variant="body2">This ID should be kept safely. It can be used by an Impersonator
+                            to view all computers that this server is paired with.</Typography>
+                            <TextField inputProps={{ style: { textAlign: 'center' } }} sx={{ marginTop: '15px', marginBottom: '5px', color: 'text.primary' }} value={serverId}></TextField>
+                        </Box>
+                    </Alert>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={props.onClose}>Close</Button>
+                </DialogActions>
+            </Dialog>         
+        )
+    }
 
     const getComputers = () => {
         if (location != "") {
@@ -340,6 +386,15 @@ const SpifyDashboardMonitoring = (props) => {
         setDisplayOpen(false);
     }
 
+    const showAuthError = () => {
+        setAuthenticationErrorVisible(true);
+    }
+
+    const showAuthFailureInstructions = (e) => {
+        e.preventDefault();
+        setAuthFailureInstructionsOpen(true);
+    }
+
     React.useEffect(() => {
         getLocations();
     }, []);
@@ -352,13 +407,14 @@ const SpifyDashboardMonitoring = (props) => {
     React.useEffect(() => {
         /* Set Computer Thumbnails */
         setComputerThumbnails((ct) => (
-            computers.map((computer) => (<ComputerThumbnailController powerOff={handlePowerOffRequest} launchDisplay={launchDisplay} computer={computer} />))
+            computers.map((computer) => (<ComputerThumbnailController showAuthenticationError={showAuthError} powerOff={handlePowerOffRequest} launchDisplay={launchDisplay} computer={computer} />))
         ));
     }, [computers])
 
     return(
         <>
             <SpifyMonitoringDisplay powerOff={handlePowerOffRequest} data={displayData} open={displayOpen} onClose={destroyDisplay} />
+            <AuthFailureInstructions open={authFailureInstructionsOpen} onClose={() => { setAuthFailureInstructionsOpen(false) }} />
             <Dialog open={powerOffConfirmOpen}>
                 <DialogTitle>{`Continue ${powerOffConfirmType}?`}</DialogTitle>
                 <DialogContent>
@@ -407,6 +463,12 @@ const SpifyDashboardMonitoring = (props) => {
                                 }
                             </Box>
                             <Box sx={{ flexGrow: 1, maxHeight: '100%', marginTop: "15px", padding: '10px 10px 20px 10px', overflowY: 'auto' }}>
+                                <Alert sx={{ marginBottom: '15px', display: (authenticationErrorVisible) ? 'flex' : 'none' }} severity='warning'>
+                                    <AlertTitle>Probable Authentication Failure</AlertTitle>
+                                    Authentication Failures occur when the Spify Webserver is not paired
+                                    with the Spify Daemon installed on the client computer.<br/> For pairing
+                                    this server to the client, <a href='#' onClick={showAuthFailureInstructions}>Follow these Instructions</a>.
+                                </Alert>
                                 <Grid container spacing={2}>
                                     {
                                         (isConnecting == true) ? 
