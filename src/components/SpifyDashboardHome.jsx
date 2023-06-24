@@ -1,13 +1,28 @@
-import { Box, Card, Divider, Grid, Typography } from '@mui/material';
+import { Box, Card, CardContent, CardHeader, Divider, Grid, Typography } from '@mui/material';
 import * as React from 'react';
 import { useParams } from 'react-router-dom';
 
 const SpifyDashboardHome = (props) => {
     const [links, setLinks] = React.useState([]);
+    const [locations, setLocations] = React.useState(0);
 
     React.useEffect(() => {
         setLinks((links) => ([
-            {}, {}, {}
+            {
+                title: 'Locations', 
+                subheader: "You're a Part of...",
+                content: <Typography variant='h3'>🏗️</Typography>
+            },
+            {
+                title: 'Computers Monitored', 
+                subheader: "All Locations Included",
+                content: <Typography variant='h3'>🏗️</Typography>
+            },
+            {
+                title: 'Computers Online', 
+                subheader: "Connected to the Network",
+                content: <Typography variant='h3'>🏗️</Typography>
+            }
         ]));
     }, []);
 
@@ -26,7 +41,10 @@ const SpifyDashboardHome = (props) => {
                                     transition: '0.2s',
                                     width: '100%', 
                                     minHeight: '150px', 
-                                }}></Card>
+                                }}>
+                                    <CardHeader title={link.title} subheader={link.subheader}></CardHeader>
+                                    <CardContent>{link.content}</CardContent>
+                                </Card>
                             </Grid>
                         );
                     })

@@ -12,6 +12,7 @@ import { serverURL } from '../middleware/SpifyServerParamConn';
 import { getCurrentTheme } from '../middleware/SpifyAppThemeController';
 
 const SpifyLogin = (props) => {
+    const [imageLoaded, setImageLoaded] = React.useState(false);
     const [isConnecting, setIsConnecting] = React.useState(false);
     const [authStatus, setAuthStatus] = React.useState(0);
     const navigate = useNavigate();
@@ -45,7 +46,6 @@ const SpifyLogin = (props) => {
     const LoginPage = () => {
         const [usernameText, setUsernameText] = React.useState("");
         const [passwordText, setPasswordText] = React.useState("");
-        const [imageLoaded, setImageLoaded] = React.useState(false);
 
         React.useEffect(() => {
             let background = new Image();
