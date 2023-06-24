@@ -17,8 +17,8 @@
 */
 
 let serverProtocol = "https";
-let serverIP = "10.0.0.110";
-let serverPort = "3001";
+let serverIP = "3001.local.atheesh.org";
+let serverPort = "443";
 let serverAddress = `${serverIP}:${serverPort}`;
 let serverURL = `${serverProtocol}://${serverAddress}`;
 

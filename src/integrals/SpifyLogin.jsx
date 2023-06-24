@@ -45,6 +45,14 @@ const SpifyLogin = (props) => {
     const LoginPage = () => {
         const [usernameText, setUsernameText] = React.useState("");
         const [passwordText, setPasswordText] = React.useState("");
+        const [imageLoaded, setImageLoaded] = React.useState(false);
+
+        React.useEffect(() => {
+            let background = new Image();
+            background.onload = () => setImageLoaded(true);
+            background.onerror = () => { setImageLoaded(true) };
+            background.src = "https://source.unsplash.com/random?wallpapers";
+        }, []);
 
         const handleForgotPassword = (e) => {
             e.preventDefault();
@@ -70,6 +78,7 @@ const SpifyLogin = (props) => {
         }
 
         return(
+            (imageLoaded == false) ? <LoginSpinner /> :
             <Grid container component="main" sx={{ height: '100%' }}>
                 <Grid 
                     item
