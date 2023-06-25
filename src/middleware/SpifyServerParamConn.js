@@ -16,9 +16,14 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-let serverProtocol = "https";
-let serverIP = "3001.local.atheesh.org";
-let serverPort = "443";
+let isProd = (process.env.NODE_ENV == "production");
+let wURL = new URL(window.location.href);
+let serverProtocol = isProd ? wURL.split(":")[0] : "https";
+let serverIP = isProd ? wURL.hostname : "3001.local.atheesh.org";
+let serverPort = isProd ? ((wURL.port != "") ? wURL.port : 
+    ((serverProtocol == "http") ? "80" : "443")) : "443";
+
+/* Collate Constants */
 let serverAddress = `${serverIP}:${serverPort}`;
 let serverURL = `${serverProtocol}://${serverAddress}`;
 
