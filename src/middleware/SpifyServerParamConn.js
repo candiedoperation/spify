@@ -18,7 +18,7 @@
 
 let isProd = (process.env.NODE_ENV == "production");
 let wURL = new URL(window.location.href);
-let serverProtocol = isProd ? wURL.split(":")[0] : "https";
+let serverProtocol = isProd ? wURL.protocol.split(":")[0] : "https";
 let serverIP = isProd ? wURL.hostname : "3001.local.atheesh.org";
 let serverPort = isProd ? ((wURL.port != "") ? wURL.port : 
     ((serverProtocol == "http") ? "80" : "443")) : "443";
