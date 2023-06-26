@@ -177,9 +177,14 @@ const ComputerThumbnailController = (props) => {
                 )
                 .then((internal_res) => {
                     if (internal_res.data.length > 0) {
+                        let filtered_sessions = internal_res.data.filter(
+                            activeSession => 
+                            activeSession.usrename.trim() != "＠"
+                        );
+
                         setOnline(true);
                         setComputerName(computerInfo.hostname);
-                        setActiveSessions((activeSessions) => internal_res.data);
+                        setActiveSessions((activeSessions) => filtered_sessions);
                     }
                 })
             } else {
