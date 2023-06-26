@@ -179,7 +179,7 @@ const ComputerThumbnailController = (props) => {
                     if (internal_res.data.length > 0) {
                         let filtered_sessions = internal_res.data.filter(
                             activeSession => 
-                            activeSession.usrename.trim() != "＠"
+                            activeSession.username.trim() != "＠"
                         );
 
                         setOnline(true);
