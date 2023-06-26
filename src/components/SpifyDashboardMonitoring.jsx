@@ -56,10 +56,8 @@ const ComputerThumbnail = (props) => {
                 }              
             }
 
+            /* Get Screenshot on Page Load */
             getDisplayPreview();
-            thumbnailInterval = setInterval(() => {
-                getDisplayPreview();
-            }, [15000]);
         } else {
             /* Destroy Timer if Exists */
             clearInterval(thumbnailInterval);
